@@ -68,16 +68,43 @@ export const COUNTRIES = {
     defaults: {
       grossSalary: 2000,      // BGN
       hourlyRateEur: 50,      // EUR
-      hoursPerMonth: 160,     // Standard full-time hours
-      workingDaysPerMonth: 22,
-      workingHoursPerDay: 8
+      // Working time calculations based on Bulgarian labor law:
+      // Standard: 22 working days × 8 hours = 176 hours per month
+      hoursPerMonth: 176,     // Bulgarian legal standard (22 days × 8 hours)
+      workingDaysPerMonth: 22, // Standard working days per month in Bulgaria
+      workingHoursPerDay: 8   // Standard full-time daily hours
+    },
+    
+    // Working hours calculation methods available to users
+    workingHoursMethods: {
+      legal: {
+        name: 'Legal Standard (Bulgaria)',
+        description: '22 working days × 8 hours',
+        hours: 176,
+        days: 22,
+        hoursPerDay: 8
+      },
+      simplified: {
+        name: 'Simplified (4 weeks)',
+        description: '4 weeks × 5 days × 8 hours',
+        hours: 160,
+        days: 20,
+        hoursPerDay: 8
+      },
+      weekly: {
+        name: 'Weekly Average',
+        description: '40 hours/week × 4.33 weeks',
+        hours: Math.round(40 * (52 / 12)), // ≈ 173 hours
+        days: Math.round(5 * (52 / 12)), // ≈ 22 days
+        hoursPerDay: 8
+      }
     },
     
     // Minimum wage and other legal requirements
     legal: {
       minimumWage: {
         monthly: 933,         // BGN (2025 rate)
-        hourly: 933 / 160     // Calculated from monthly
+        hourly: 933 / 176     // Calculated using Bulgarian legal standard (176 hours)
       }
     },
     
@@ -148,6 +175,15 @@ export const calculateSocialSecuritySavings = (grossSalary, countryConfig) => {
   const { employeeSocialSecurity, employerSocialSecurity } = countryConfig;
   
   return excessAmount * (employeeSocialSecurity.total + employerSocialSecurity.total);
+};
+
+// Working hours calculation helpers
+export const calculateMonthlyHours = (countryConfig, method = 'legal') => {
+  if (!countryConfig.workingHoursMethods[method]) {
+    return countryConfig.defaults.hoursPerMonth;
+  }
+  
+  return countryConfig.workingHoursMethods[method].hours;
 };
 
 // Default country (can be changed based on user preference or detection)

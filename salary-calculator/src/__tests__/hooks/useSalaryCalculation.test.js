@@ -224,7 +224,7 @@ describe('useSalaryCalculation', () => {
         result.current.setHourlyRateEur(75);
       });
 
-      const expectedGrossSalary = 75 * EUR_TO_BGN_RATE * 160;
+      const expectedGrossSalary = 75 * EUR_TO_BGN_RATE * countryConfig.defaults.hoursPerMonth;
       expect(result.current.currentGrossSalary).toBeCloseTo(expectedGrossSalary);
     });
   });
@@ -250,7 +250,9 @@ describe('useSalaryCalculation', () => {
       });
 
       expect(result.current.hoursPerMonth).toBe(1);
-      expect(result.current.currentHourlyRateBgn).toBe(result.current.currentGrossSalary);
+      // The hourly rate should be gross salary divided by current working hours (which defaults to 176)
+      const expectedHourlyRate = result.current.currentGrossSalary / result.current.currentWorkingHours;
+      expect(result.current.currentHourlyRateBgn).toBeCloseTo(expectedHourlyRate);
     });
   });
 });

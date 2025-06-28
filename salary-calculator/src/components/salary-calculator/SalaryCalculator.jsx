@@ -2,6 +2,7 @@ import React from 'react';
 import { useSalaryCalculation } from './hooks/useSalaryCalculation';
 import { Header } from './ui/Header';
 import { InputControls } from './ui/InputControls';
+import { WorkingHoursSelector } from './ui/WorkingHoursSelector';
 import { HourlyRateBreakdown } from './ui/HourlyRateBreakdown';
 import { ContributionsBreakdown } from './ui/ContributionsBreakdown';
 import { SummaryCards } from './ui/SummaryCards';
@@ -22,8 +23,11 @@ const SalaryCalculator = () => {
     setHoursPerMonth,
     currency,
     setCurrency,
+    workingHoursMethod,
+    setWorkingHoursMethod,
 
-    // Constants
+    // Constants and configuration
+    countryConfig,
     EUR_TO_BGN_RATE,
     SOCIAL_SECURITY_CEILING_BGN,
     predefinedRates,
@@ -45,6 +49,7 @@ const SalaryCalculator = () => {
     socialSecuritySavings,
     netHourlyRateBgn,
     costPerHourBgn,
+    currentWorkingHours,
 
     // Utilities
     formatCurrency
@@ -76,6 +81,13 @@ const SalaryCalculator = () => {
           predefinedRates={predefinedRates}
         />
       </Card>
+
+      <WorkingHoursSelector
+        selectedMethod={workingHoursMethod}
+        onMethodChange={setWorkingHoursMethod}
+        workingHoursMethods={countryConfig.workingHoursMethods}
+        currentHours={currentWorkingHours}
+      />
 
       <HourlyRateBreakdown
         currentHourlyRateBgn={currentHourlyRateBgn}

@@ -17,6 +17,7 @@ export const useSalaryCalculation = (countryCode = 'BG') => {
   const [hourlyRateEur, setHourlyRateEur] = useState(countryConfig.defaults.hourlyRateEur);
   const [hoursPerMonth, setHoursPerMonth] = useState(countryConfig.defaults.hoursPerMonth);
   const [currency, setCurrency] = useState(countryConfig.currency.primary);
+  const [workingHoursMethod, setWorkingHoursMethod] = useState('legal'); // Default to legal standard
 
   // Predefined hourly rates in EUR
   const predefinedRates = [
@@ -26,18 +27,28 @@ export const useSalaryCalculation = (countryCode = 'BG') => {
 
   // Memoized calculations
   const calculations = useMemo(() => {
+    // Get current working hours based on selected method
+    const getCurrentWorkingHours = () => {
+      if (inputMode === 'hourly') {
+        return hoursPerMonth; // User can override in hourly mode
+      }
+      return countryConfig.workingHoursMethods[workingHoursMethod]?.hours || countryConfig.defaults.hoursPerMonth;
+    };
+    
+    const currentWorkingHours = getCurrentWorkingHours();
+    
     // Calculate gross salary based on input mode
     const calculateGrossSalary = () => {
       if (inputMode === 'hourly') {
         const exchangeRate = countryConfig.currency.exchangeRates.EUR;
         const hourlyRateInPrimaryCurrency = hourlyRateEur * exchangeRate;
-        return hourlyRateInPrimaryCurrency * hoursPerMonth;
+        return hourlyRateInPrimaryCurrency * currentWorkingHours;
       }
       return grossSalary;
     };
 
     const currentGrossSalary = calculateGrossSalary();
-    const currentHourlyRateBgn = currentGrossSalary / hoursPerMonth;
+    const currentHourlyRateBgn = currentGrossSalary / currentWorkingHours;
     
     // Apply social security ceiling using helper function
     const socialSecurityBase = calculateSocialSecurityBase(currentGrossSalary, countryConfig);
@@ -81,8 +92,8 @@ export const useSalaryCalculation = (countryCode = 'BG') => {
     const socialSecuritySavings = calculateSocialSecuritySavings(currentGrossSalary, countryConfig);
 
     // Hourly calculations
-    const netHourlyRateBgn = netSalary / hoursPerMonth;
-    const costPerHourBgn = totalCostToCompany / hoursPerMonth;
+    const netHourlyRateBgn = netSalary / currentWorkingHours;
+    const costPerHourBgn = totalCostToCompany / currentWorkingHours;
 
     return {
       currentGrossSalary,
@@ -101,9 +112,10 @@ export const useSalaryCalculation = (countryCode = 'BG') => {
       isCeilingApplied,
       socialSecuritySavings,
       netHourlyRateBgn,
-      costPerHourBgn
+      costPerHourBgn,
+      currentWorkingHours
     };
-  }, [inputMode, grossSalary, hourlyRateEur, hoursPerMonth, countryConfig]);
+  }, [inputMode, grossSalary, hourlyRateEur, hoursPerMonth, workingHoursMethod, countryConfig]);
 
   // Currency formatting function using country config
   const formatCurrency = (amount, curr = currency) => {
@@ -141,6 +153,8 @@ export const useSalaryCalculation = (countryCode = 'BG') => {
     setHoursPerMonth,
     currency,
     setCurrency,
+    workingHoursMethod,
+    setWorkingHoursMethod,
 
     // Country configuration and constants
     countryConfig,
