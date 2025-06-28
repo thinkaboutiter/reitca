@@ -1,11 +1,11 @@
 import React from 'react';
-import BulgariaSalaryCalculator from './components/BulgariaSalaryCalculator';
+import SalaryCalculator from './components/salary-calculator/SalaryCalculator';
 import './App.css';
 
 function App() {
   return (
     <div className="App">
-      <BulgariaSalaryCalculator />
+      <SalaryCalculator />
     </div>
   );
 }
