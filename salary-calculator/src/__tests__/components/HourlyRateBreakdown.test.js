@@ -1,9 +1,11 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { HourlyRateBreakdown } from '../../components/salary-calculator/ui/HourlyRateBreakdown';
+import { getCountryConfig } from '../../config/countries';
 
 describe('HourlyRateBreakdown Component', () => {
-  const EUR_TO_BGN_RATE = 1.95583;
+  const countryConfig = getCountryConfig('BG');
+  const EUR_TO_BGN_RATE = countryConfig.currency.exchangeRates.EUR;
 
   const defaultProps = {
     currentHourlyRateBgn: 97.79,

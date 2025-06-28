@@ -1,19 +1,21 @@
 import { renderHook, act } from '@testing-library/react';
 import { useSalaryCalculation } from '../../components/salary-calculator/hooks/useSalaryCalculation';
+import { getCountryConfig } from '../../config/countries';
 
 describe('useSalaryCalculation', () => {
-  const EUR_TO_BGN_RATE = 1.95583;
-  const SOCIAL_SECURITY_CEILING_BGN = 4130;
+  const countryConfig = getCountryConfig('BG');
+  const EUR_TO_BGN_RATE = countryConfig.currency.exchangeRates.EUR;
+  const SOCIAL_SECURITY_CEILING_BGN = countryConfig.socialSecurity.ceiling.monthly;
 
   describe('Initial state', () => {
     test('should have correct default values', () => {
       const { result } = renderHook(() => useSalaryCalculation());
 
       expect(result.current.inputMode).toBe('monthly');
-      expect(result.current.grossSalary).toBe(2000);
-      expect(result.current.hourlyRateEur).toBe(50);
-      expect(result.current.hoursPerMonth).toBe(160);
-      expect(result.current.currency).toBe('BGN');
+      expect(result.current.grossSalary).toBe(countryConfig.defaults.grossSalary);
+      expect(result.current.hourlyRateEur).toBe(countryConfig.defaults.hourlyRateEur);
+      expect(result.current.hoursPerMonth).toBe(countryConfig.defaults.hoursPerMonth);
+      expect(result.current.currency).toBe(countryConfig.currency.primary);
       expect(result.current.EUR_TO_BGN_RATE).toBe(EUR_TO_BGN_RATE);
       expect(result.current.SOCIAL_SECURITY_CEILING_BGN).toBe(SOCIAL_SECURITY_CEILING_BGN);
     });
@@ -23,43 +25,49 @@ describe('useSalaryCalculation', () => {
     test('should calculate correctly for monthly salary input', () => {
       const { result } = renderHook(() => useSalaryCalculation());
 
-      // Test with 2000 BGN monthly salary (default)
-      expect(result.current.currentGrossSalary).toBe(2000);
-      expect(result.current.currentHourlyRateBgn).toBe(2000 / 160); // 12.5 BGN/h
+      // Test with default monthly salary
+      const defaultSalary = countryConfig.defaults.grossSalary;
+      const defaultHours = countryConfig.defaults.hoursPerMonth;
       
-      // Employee social security contributions (13.78% total)
-      expect(result.current.employeeSocialSecurity.pension).toBeCloseTo(2000 * 0.0978); // 195.6
-      expect(result.current.employeeSocialSecurity.health).toBeCloseTo(2000 * 0.032); // 64
-      expect(result.current.employeeSocialSecurity.unemployment).toBeCloseTo(2000 * 0.008); // 16
-      expect(result.current.employeeSocialSecurity.total).toBeCloseTo(2000 * 0.1378); // 275.6
+      expect(result.current.currentGrossSalary).toBe(defaultSalary);
+      expect(result.current.currentHourlyRateBgn).toBe(defaultSalary / defaultHours);
+      
+      // Employee social security contributions using config rates
+      const { employeeSocialSecurity: empRates } = countryConfig;
+      expect(result.current.employeeSocialSecurity.pension).toBeCloseTo(defaultSalary * empRates.pension);
+      expect(result.current.employeeSocialSecurity.health).toBeCloseTo(defaultSalary * empRates.health);
+      expect(result.current.employeeSocialSecurity.unemployment).toBeCloseTo(defaultSalary * empRates.unemployment);
+      expect(result.current.employeeSocialSecurity.total).toBeCloseTo(defaultSalary * empRates.total);
 
-      // Income tax (10% on taxable income)
-      const expectedTaxableIncome = 2000 - (2000 * 0.1378);
+      // Income tax using config rate
+      const expectedTaxableIncome = defaultSalary - (defaultSalary * empRates.total);
       expect(result.current.taxableIncome).toBeCloseTo(expectedTaxableIncome);
-      expect(result.current.incomeTax).toBeCloseTo(expectedTaxableIncome * 0.10);
+      expect(result.current.incomeTax).toBeCloseTo(expectedTaxableIncome * countryConfig.incomeTax.rate);
 
       // Net salary
-      const expectedNetSalary = expectedTaxableIncome - (expectedTaxableIncome * 0.10);
+      const expectedNetSalary = expectedTaxableIncome - (expectedTaxableIncome * countryConfig.incomeTax.rate);
       expect(result.current.netSalary).toBeCloseTo(expectedNetSalary);
 
-      // Employer contributions (18.92% total)
-      expect(result.current.employerSocialSecurity.pension).toBeCloseTo(2000 * 0.1292);
-      expect(result.current.employerSocialSecurity.health).toBeCloseTo(2000 * 0.048);
-      expect(result.current.employerSocialSecurity.unemployment).toBeCloseTo(2000 * 0.01);
-      expect(result.current.employerSocialSecurity.workAccidents).toBeCloseTo(2000 * 0.002);
-      expect(result.current.employerSocialSecurity.total).toBeCloseTo(2000 * 0.1892);
+      // Employer contributions using config rates
+      const { employerSocialSecurity: empRRates } = countryConfig;
+      expect(result.current.employerSocialSecurity.pension).toBeCloseTo(defaultSalary * empRRates.pension);
+      expect(result.current.employerSocialSecurity.health).toBeCloseTo(defaultSalary * empRRates.health);
+      expect(result.current.employerSocialSecurity.unemployment).toBeCloseTo(defaultSalary * empRRates.unemployment);
+      expect(result.current.employerSocialSecurity.workAccidents).toBeCloseTo(defaultSalary * empRRates.workAccidents);
+      expect(result.current.employerSocialSecurity.total).toBeCloseTo(defaultSalary * empRRates.total);
 
       // Total cost to company
-      expect(result.current.totalCostToCompany).toBeCloseTo(2000 + (2000 * 0.1892));
+      expect(result.current.totalCostToCompany).toBeCloseTo(defaultSalary + (defaultSalary * empRRates.total));
     });
 
     test('should not apply ceiling for salary below limit', () => {
       const { result } = renderHook(() => useSalaryCalculation());
 
-      // 2000 BGN is below the 4130 BGN ceiling
+      // Default salary is below the ceiling
+      const defaultSalary = countryConfig.defaults.grossSalary;
       expect(result.current.isCeilingApplied).toBe(false);
       expect(result.current.socialSecuritySavings).toBe(0);
-      expect(result.current.socialSecurityBase).toBe(2000);
+      expect(result.current.socialSecurityBase).toBe(defaultSalary);
     });
   });
 
@@ -67,17 +75,20 @@ describe('useSalaryCalculation', () => {
     test('should calculate correctly for hourly rate input', () => {
       const { result } = renderHook(() => useSalaryCalculation());
 
-      // Switch to hourly mode
+      // Switch to hourly mode using config defaults
+      const defaultHourlyRate = countryConfig.defaults.hourlyRateEur;
+      const defaultHours = countryConfig.defaults.hoursPerMonth;
+      
       act(() => {
         result.current.setInputMode('hourly');
-        result.current.setHourlyRateEur(50);
-        result.current.setHoursPerMonth(160);
+        result.current.setHourlyRateEur(defaultHourlyRate);
+        result.current.setHoursPerMonth(defaultHours);
       });
 
-      // Expected gross salary: 50 EUR/h * 1.95583 * 160h = 15,646.64 BGN
-      const expectedGrossSalary = 50 * EUR_TO_BGN_RATE * 160;
+      // Expected gross salary using config exchange rate
+      const expectedGrossSalary = defaultHourlyRate * EUR_TO_BGN_RATE * defaultHours;
       expect(result.current.currentGrossSalary).toBeCloseTo(expectedGrossSalary);
-      expect(result.current.currentHourlyRateBgn).toBeCloseTo(50 * EUR_TO_BGN_RATE); // 97.79 BGN/h
+      expect(result.current.currentHourlyRateBgn).toBeCloseTo(defaultHourlyRate * EUR_TO_BGN_RATE);
     });
   });
 

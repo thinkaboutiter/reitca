@@ -1,16 +1,22 @@
 import { useState, useMemo } from 'react';
+import { 
+  getCountryConfig, 
+  convertCurrency, 
+  calculateSocialSecurityBase,
+  isSocialSecurityCeilingApplied,
+  calculateSocialSecuritySavings
+} from '../../../config/countries';
 
-export const useSalaryCalculation = () => {
-  // State
+export const useSalaryCalculation = (countryCode = 'BG') => {
+  // Get country configuration
+  const countryConfig = getCountryConfig(countryCode);
+  
+  // State - using country defaults
   const [inputMode, setInputMode] = useState('monthly');
-  const [grossSalary, setGrossSalary] = useState(2000);
-  const [hourlyRateEur, setHourlyRateEur] = useState(50);
-  const [hoursPerMonth, setHoursPerMonth] = useState(160);
-  const [currency, setCurrency] = useState('BGN');
-
-  // Constants
-  const EUR_TO_BGN_RATE = 1.95583;
-  const SOCIAL_SECURITY_CEILING_BGN = 4130;
+  const [grossSalary, setGrossSalary] = useState(countryConfig.defaults.grossSalary);
+  const [hourlyRateEur, setHourlyRateEur] = useState(countryConfig.defaults.hourlyRateEur);
+  const [hoursPerMonth, setHoursPerMonth] = useState(countryConfig.defaults.hoursPerMonth);
+  const [currency, setCurrency] = useState(countryConfig.currency.primary);
 
   // Predefined hourly rates in EUR
   const predefinedRates = [
@@ -23,8 +29,9 @@ export const useSalaryCalculation = () => {
     // Calculate gross salary based on input mode
     const calculateGrossSalary = () => {
       if (inputMode === 'hourly') {
-        const hourlyRateBgn = hourlyRateEur * EUR_TO_BGN_RATE;
-        return hourlyRateBgn * hoursPerMonth;
+        const exchangeRate = countryConfig.currency.exchangeRates.EUR;
+        const hourlyRateInPrimaryCurrency = hourlyRateEur * exchangeRate;
+        return hourlyRateInPrimaryCurrency * hoursPerMonth;
       }
       return grossSalary;
     };
@@ -32,29 +39,32 @@ export const useSalaryCalculation = () => {
     const currentGrossSalary = calculateGrossSalary();
     const currentHourlyRateBgn = currentGrossSalary / hoursPerMonth;
     
-    // Apply social security ceiling
-    const socialSecurityBase = Math.min(currentGrossSalary, SOCIAL_SECURITY_CEILING_BGN);
+    // Apply social security ceiling using helper function
+    const socialSecurityBase = calculateSocialSecurityBase(currentGrossSalary, countryConfig);
 
     // Employee contributions (from gross salary, up to ceiling)
+    const { employeeSocialSecurity: empRates } = countryConfig;
     const employeeSocialSecurity = {
-      pension: socialSecurityBase * 0.0978,
-      health: socialSecurityBase * 0.032,
-      unemployment: socialSecurityBase * 0.008,
-      total: socialSecurityBase * 0.1378
+      pension: socialSecurityBase * empRates.pension,
+      health: socialSecurityBase * empRates.health,
+      unemployment: socialSecurityBase * empRates.unemployment,
+      total: socialSecurityBase * empRates.total
     };
 
     // Taxable income after social security
     const taxableIncome = currentGrossSalary - employeeSocialSecurity.total;
-    const incomeTax = taxableIncome * 0.10;
+    const incomeTax = taxableIncome * countryConfig.incomeTax.rate;
     const netSalary = taxableIncome - incomeTax;
 
     // Employer contributions (additional to gross salary, social security up to ceiling)
+    const { employerSocialSecurity: empRRates } = countryConfig;
     const employerSocialSecurity = {
-      pension: socialSecurityBase * 0.1292,
-      health: socialSecurityBase * 0.048,
-      unemployment: socialSecurityBase * 0.01,
-      workAccidents: currentGrossSalary * 0.002, // Work accidents apply to full salary
-      total: socialSecurityBase * 0.1892 + (currentGrossSalary - socialSecurityBase) * 0.002
+      pension: socialSecurityBase * empRRates.pension,
+      health: socialSecurityBase * empRRates.health,
+      unemployment: socialSecurityBase * empRRates.unemployment,
+      workAccidents: currentGrossSalary * empRRates.workAccidents, // Work accidents apply to full salary
+      total: (socialSecurityBase * (empRRates.pension + empRRates.health + empRRates.unemployment)) + 
+             (currentGrossSalary * empRRates.workAccidents)
     };
 
     // Total cost to company
@@ -66,10 +76,9 @@ export const useSalaryCalculation = () => {
     const netToGrossRatio = (netSalary / currentGrossSalary) * 100;
     const totalCostRatio = (totalCostToCompany / netSalary) * 100;
 
-    // Check if ceiling is applied
-    const isCeilingApplied = currentGrossSalary > SOCIAL_SECURITY_CEILING_BGN;
-    const socialSecuritySavings = isCeilingApplied ? 
-      (currentGrossSalary - SOCIAL_SECURITY_CEILING_BGN) * (0.1378 + 0.1892) : 0;
+    // Check if ceiling is applied using helper function
+    const isCeilingApplied = isSocialSecurityCeilingApplied(currentGrossSalary, countryConfig);
+    const socialSecuritySavings = calculateSocialSecuritySavings(currentGrossSalary, countryConfig);
 
     // Hourly calculations
     const netHourlyRateBgn = netSalary / hoursPerMonth;
@@ -94,21 +103,28 @@ export const useSalaryCalculation = () => {
       netHourlyRateBgn,
       costPerHourBgn
     };
-  }, [inputMode, grossSalary, hourlyRateEur, hoursPerMonth]);
+  }, [inputMode, grossSalary, hourlyRateEur, hoursPerMonth, countryConfig]);
 
-  // Currency formatting function
+  // Currency formatting function using country config
   const formatCurrency = (amount, curr = currency) => {
-    if (curr === 'EUR') {
+    const { primary, exchangeRates } = countryConfig.currency;
+    const { locale, currencyDecimals } = countryConfig.formatting;
+    
+    if (curr !== primary && exchangeRates[curr]) {
+      // Convert to foreign currency
+      const convertedAmount = convertCurrency(amount, primary, curr, countryConfig);
       return new Intl.NumberFormat('de-DE', {
         style: 'currency',
-        currency: 'EUR',
-        minimumFractionDigits: 2
-      }).format(amount / EUR_TO_BGN_RATE);
+        currency: curr,
+        minimumFractionDigits: currencyDecimals
+      }).format(convertedAmount);
     }
-    return new Intl.NumberFormat('bg-BG', {
+    
+    // Display in primary currency
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
-      currency: 'BGN',
-      minimumFractionDigits: 2
+      currency: primary,
+      minimumFractionDigits: currencyDecimals
     }).format(amount);
   };
 
@@ -126,9 +142,10 @@ export const useSalaryCalculation = () => {
     currency,
     setCurrency,
 
-    // Constants
-    EUR_TO_BGN_RATE,
-    SOCIAL_SECURITY_CEILING_BGN,
+    // Country configuration and constants
+    countryConfig,
+    EUR_TO_BGN_RATE: countryConfig.currency.exchangeRates.EUR,
+    SOCIAL_SECURITY_CEILING_BGN: countryConfig.socialSecurity.ceiling.monthly,
     predefinedRates,
 
     // Calculations

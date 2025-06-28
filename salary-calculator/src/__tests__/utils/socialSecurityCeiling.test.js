@@ -1,9 +1,11 @@
 import { renderHook, act } from '@testing-library/react';
 import { useSalaryCalculation } from '../../components/salary-calculator/hooks/useSalaryCalculation';
+import { getCountryConfig } from '../../config/countries';
 
 describe('Social Security Ceiling Calculations', () => {
-  const SOCIAL_SECURITY_CEILING_BGN = 4130;
-  const EUR_TO_BGN_RATE = 1.95583;
+  const countryConfig = getCountryConfig('BG');
+  const SOCIAL_SECURITY_CEILING_BGN = countryConfig.socialSecurity.ceiling.monthly;
+  const EUR_TO_BGN_RATE = countryConfig.currency.exchangeRates.EUR;
 
   describe('Ceiling application logic', () => {
     test('should not apply ceiling for salaries below limit', () => {

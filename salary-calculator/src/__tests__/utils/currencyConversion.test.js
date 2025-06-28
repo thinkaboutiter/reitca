@@ -1,8 +1,10 @@
 import { renderHook } from '@testing-library/react';
 import { useSalaryCalculation } from '../../components/salary-calculator/hooks/useSalaryCalculation';
+import { getCountryConfig } from '../../config/countries';
 
 describe('Currency Conversion Logic', () => {
-  const EUR_TO_BGN_RATE = 1.95583;
+  const countryConfig = getCountryConfig('BG');
+  const EUR_TO_BGN_RATE = countryConfig.currency.exchangeRates.EUR;
 
   describe('formatCurrency function', () => {
     test('should convert BGN to EUR correctly', () => {

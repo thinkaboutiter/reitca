@@ -1,9 +1,11 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { SummaryCards } from '../../components/salary-calculator/ui/SummaryCards';
+import { getCountryConfig } from '../../config/countries';
 
 describe('SummaryCards Component', () => {
-  const EUR_TO_BGN_RATE = 1.95583;
+  const countryConfig = getCountryConfig('BG');
+  const EUR_TO_BGN_RATE = countryConfig.currency.exchangeRates.EUR;
 
   const defaultProps = {
     netSalary: 1724.4,

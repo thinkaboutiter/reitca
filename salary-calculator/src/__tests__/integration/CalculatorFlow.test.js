@@ -1,17 +1,19 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import SalaryCalculator from '../../components/salary-calculator/SalaryCalculator';
+import { getCountryConfig } from '../../config/countries';
 
 describe('Salary Calculator Integration Tests', () => {
-  const EUR_TO_BGN_RATE = 1.95583;
-  const SOCIAL_SECURITY_CEILING_BGN = 4130;
+  const countryConfig = getCountryConfig('BG');
+  const EUR_TO_BGN_RATE = countryConfig.currency.exchangeRates.EUR;
+  const SOCIAL_SECURITY_CEILING_BGN = countryConfig.socialSecurity.ceiling.monthly;
 
   describe('Complete calculator flow', () => {
     test('should render calculator correctly', async () => {
       render(<SalaryCalculator />);
 
       // Verify initial state
-      expect(screen.getByDisplayValue('2000')).toBeInTheDocument(); // Default gross salary
+      expect(screen.getByDisplayValue(countryConfig.defaults.grossSalary.toString())).toBeInTheDocument(); // Default gross salary
       expect(screen.getByText('Monthly Salary')).toBeInTheDocument();
 
       // Check that calculations are displayed
@@ -32,8 +34,8 @@ describe('Salary Calculator Integration Tests', () => {
 
       // Verify hourly mode is active
       await waitFor(() => {
-        expect(screen.getByDisplayValue('50')).toBeInTheDocument(); // Default hourly rate
-        expect(screen.getByDisplayValue('160')).toBeInTheDocument(); // Default hours
+        expect(screen.getByDisplayValue(countryConfig.defaults.hourlyRateEur.toString())).toBeInTheDocument(); // Default hourly rate
+        expect(screen.getByDisplayValue(countryConfig.defaults.hoursPerMonth.toString())).toBeInTheDocument(); // Default hours
         expect(screen.getByText('Monthly Gross (BGN)')).toBeInTheDocument();
       });
 
