@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSalaryCalculation } from './hooks/useSalaryCalculation';
+import { getSupportedCountries } from '../../config/countries';
 import { Header } from './ui/Header';
+import { CountrySelector } from './ui/CountrySelector';
 import { InputControls } from './ui/InputControls';
 import { WorkingHoursSelector } from './ui/WorkingHoursSelector';
 import { HourlyRateBreakdown } from './ui/HourlyRateBreakdown';
@@ -11,6 +13,10 @@ import { KeyPoints } from './ui/KeyPoints';
 import { Card } from './shared/Card';
 
 const SalaryCalculator = () => {
+  // Country selection state
+  const [selectedCountryCode, setSelectedCountryCode] = useState('BG'); // Default to Bulgaria
+  const supportedCountries = getSupportedCountries();
+
   const {
     // State and setters
     inputMode,
@@ -53,12 +59,14 @@ const SalaryCalculator = () => {
 
     // Utilities
     formatCurrency
-  } = useSalaryCalculation();
+  } = useSalaryCalculation(selectedCountryCode);
 
   return (
     <div className="max-w-7xl mx-auto p-6 bg-gradient-to-br from-blue-50 to-green-50 min-h-screen">
       <Card className="mb-6">
         <Header 
+          selectedCountryCode={selectedCountryCode}
+          countryConfig={countryConfig}
           EUR_TO_BGN_RATE={EUR_TO_BGN_RATE}
           isCeilingApplied={isCeilingApplied}
           SOCIAL_SECURITY_CEILING_BGN={SOCIAL_SECURITY_CEILING_BGN}
@@ -81,6 +89,12 @@ const SalaryCalculator = () => {
           predefinedRates={predefinedRates}
         />
       </Card>
+
+      <CountrySelector
+        selectedCountryCode={selectedCountryCode}
+        onCountryChange={setSelectedCountryCode}
+        countries={supportedCountries}
+      />
 
       <WorkingHoursSelector
         selectedMethod={workingHoursMethod}
