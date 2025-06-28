@@ -10,6 +10,9 @@ const BulgariaSalaryCalculator = () => {
 
   // Fixed EUR/BGN exchange rate (Bulgaria's currency board rate)
   const EUR_TO_BGN_RATE = 1.95583;
+  
+  // Social security contribution ceiling for 2025 (BGN per month)
+  const SOCIAL_SECURITY_CEILING_BGN = 4130;
 
   // Predefined hourly rates in EUR
   const predefinedRates = [
@@ -30,12 +33,15 @@ const BulgariaSalaryCalculator = () => {
   const currentHourlyRateBgn = currentGrossSalary / hoursPerMonth;
   const currentHourlyRateEur = currentHourlyRateBgn / EUR_TO_BGN_RATE;
 
-  // Employee contributions (from gross salary)
+  // Apply social security ceiling
+  const socialSecurityBase = Math.min(currentGrossSalary, SOCIAL_SECURITY_CEILING_BGN);
+
+  // Employee contributions (from gross salary, up to ceiling)
   const employeeSocialSecurity = {
-    pension: currentGrossSalary * 0.0978,
-    health: currentGrossSalary * 0.032,
-    unemployment: currentGrossSalary * 0.008,
-    total: currentGrossSalary * 0.1378
+    pension: socialSecurityBase * 0.0978,
+    health: socialSecurityBase * 0.032,
+    unemployment: socialSecurityBase * 0.008,
+    total: socialSecurityBase * 0.1378
   };
 
   // Taxable income after social security
@@ -43,13 +49,13 @@ const BulgariaSalaryCalculator = () => {
   const incomeTax = taxableIncome * 0.10;
   const netSalary = taxableIncome - incomeTax;
 
-  // Employer contributions (additional to gross salary)
+  // Employer contributions (additional to gross salary, social security up to ceiling)
   const employerSocialSecurity = {
-    pension: currentGrossSalary * 0.1292,
-    health: currentGrossSalary * 0.048,
-    unemployment: currentGrossSalary * 0.01,
-    workAccidents: currentGrossSalary * 0.002,
-    total: currentGrossSalary * 0.1892
+    pension: socialSecurityBase * 0.1292,
+    health: socialSecurityBase * 0.048,
+    unemployment: socialSecurityBase * 0.01,
+    workAccidents: currentGrossSalary * 0.002, // Work accidents apply to full salary
+    total: socialSecurityBase * 0.1892 + (currentGrossSalary - socialSecurityBase) * 0.002
   };
 
   // Total cost to company
@@ -66,6 +72,11 @@ const BulgariaSalaryCalculator = () => {
   const netHourlyRateEur = netHourlyRateBgn / EUR_TO_BGN_RATE;
   const costPerHourBgn = totalCostToCompany / hoursPerMonth;
   const costPerHourEur = costPerHourBgn / EUR_TO_BGN_RATE;
+
+  // Check if ceiling is applied
+  const isCeilingApplied = currentGrossSalary > SOCIAL_SECURITY_CEILING_BGN;
+  const socialSecuritySavings = isCeilingApplied ? 
+    (currentGrossSalary - SOCIAL_SECURITY_CEILING_BGN) * (0.1378 + 0.1892) : 0;
 
   const formatCurrency = (amount, curr = currency) => {
     if (curr === 'EUR') {
@@ -92,9 +103,19 @@ const BulgariaSalaryCalculator = () => {
         <div className="flex items-center gap-3 mb-6">
           <Calculator className="w-8 h-8 text-blue-600" />
           <h1 className="text-3xl font-bold text-gray-800">Bulgaria Salary Calculator</h1>
-          <div className="ml-auto flex items-center gap-2">
-            <Euro className="w-5 h-5 text-gray-600" />
-            <span className="text-sm text-gray-600">1 EUR = {EUR_TO_BGN_RATE} BGN</span>
+          <div className="ml-auto flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Euro className="w-5 h-5 text-gray-600" />
+              <span className="text-sm text-gray-600">1 EUR = {EUR_TO_BGN_RATE} BGN</span>
+            </div>
+            {isCeilingApplied && (
+              <div className="flex items-center gap-2 bg-orange-100 text-orange-800 px-3 py-1 rounded-lg">
+                <TrendingUp className="w-4 h-4" />
+                <span className="text-sm font-medium">
+                  Ceiling Applied: {formatCurrency(SOCIAL_SECURITY_CEILING_BGN, 'BGN')}
+                </span>
+              </div>
+            )}
           </div>
         </div>
         
@@ -421,19 +442,28 @@ const BulgariaSalaryCalculator = () => {
                 <td className="py-3 px-4 text-right">Base</td>
               </tr>
               <tr>
-                <td className="py-3 px-4">Employee Pension Fund</td>
+                <td className="py-3 px-4">
+                  Employee Pension Fund
+                  {isCeilingApplied && <span className="text-orange-600 text-xs ml-1">*</span>}
+                </td>
                 <td className="py-3 px-4 text-right">9.78%</td>
                 <td className="py-3 px-4 text-right font-mono">-{formatCurrency(displayAmount(employeeSocialSecurity.pension))}</td>
                 <td className="py-3 px-4 text-right text-red-600">Employee</td>
               </tr>
               <tr>
-                <td className="py-3 px-4">Employee Health Insurance</td>
+                <td className="py-3 px-4">
+                  Employee Health Insurance
+                  {isCeilingApplied && <span className="text-orange-600 text-xs ml-1">*</span>}
+                </td>
                 <td className="py-3 px-4 text-right">3.20%</td>
                 <td className="py-3 px-4 text-right font-mono">-{formatCurrency(displayAmount(employeeSocialSecurity.health))}</td>
                 <td className="py-3 px-4 text-right text-red-600">Employee</td>
               </tr>
               <tr>
-                <td className="py-3 px-4">Employee Unemployment</td>
+                <td className="py-3 px-4">
+                  Employee Unemployment
+                  {isCeilingApplied && <span className="text-orange-600 text-xs ml-1">*</span>}
+                </td>
                 <td className="py-3 px-4 text-right">0.80%</td>
                 <td className="py-3 px-4 text-right font-mono">-{formatCurrency(displayAmount(employeeSocialSecurity.unemployment))}</td>
                 <td className="py-3 px-4 text-right text-red-600">Employee</td>
@@ -451,19 +481,28 @@ const BulgariaSalaryCalculator = () => {
                 <td className="py-3 px-4 text-right">Employee Gets</td>
               </tr>
               <tr className="border-t-2 border-gray-300">
-                <td className="py-3 px-4">Employer Pension Fund</td>
+                <td className="py-3 px-4">
+                  Employer Pension Fund
+                  {isCeilingApplied && <span className="text-orange-600 text-xs ml-1">*</span>}
+                </td>
                 <td className="py-3 px-4 text-right">12.92%</td>
                 <td className="py-3 px-4 text-right font-mono">+{formatCurrency(displayAmount(employerSocialSecurity.pension))}</td>
                 <td className="py-3 px-4 text-right text-blue-600">Company</td>
               </tr>
               <tr>
-                <td className="py-3 px-4">Employer Health Insurance</td>
+                <td className="py-3 px-4">
+                  Employer Health Insurance
+                  {isCeilingApplied && <span className="text-orange-600 text-xs ml-1">*</span>}
+                </td>
                 <td className="py-3 px-4 text-right">4.80%</td>
                 <td className="py-3 px-4 text-right font-mono">+{formatCurrency(displayAmount(employerSocialSecurity.health))}</td>
                 <td className="py-3 px-4 text-right text-blue-600">Company</td>
               </tr>
               <tr>
-                <td className="py-3 px-4">Employer Unemployment</td>
+                <td className="py-3 px-4">
+                  Employer Unemployment
+                  {isCeilingApplied && <span className="text-orange-600 text-xs ml-1">*</span>}
+                </td>
                 <td className="py-3 px-4 text-right">1.00%</td>
                 <td className="py-3 px-4 text-right font-mono">+{formatCurrency(displayAmount(employerSocialSecurity.unemployment))}</td>
                 <td className="py-3 px-4 text-right text-blue-600">Company</td>
@@ -482,6 +521,11 @@ const BulgariaSalaryCalculator = () => {
               </tr>
             </tbody>
           </table>
+          {isCeilingApplied && (
+            <div className="mt-3 text-xs text-orange-700">
+              * Contribution capped at {formatCurrency(SOCIAL_SECURITY_CEILING_BGN, 'BGN')} monthly ceiling
+            </div>
+          )}
         </div>
       </div>
 
@@ -493,6 +537,13 @@ const BulgariaSalaryCalculator = () => {
           <li>• Standard working month: {hoursPerMonth} hours (can be adjusted)</li>
           <li>• Income tax is applied to gross salary minus social security contributions</li>
           <li>• Employer contributions are additional costs beyond the gross salary</li>
+          <li>• Social security contributions are capped at {formatCurrency(SOCIAL_SECURITY_CEILING_BGN, 'BGN')} per month</li>
+          {isCeilingApplied && (
+            <li className="text-orange-700 font-medium">
+              • Monthly savings from ceiling: {formatCurrency(displayAmount(socialSecuritySavings))} 
+              (employee + employer combined)
+            </li>
+          )}
         </ul>
       </div>
     </div>
