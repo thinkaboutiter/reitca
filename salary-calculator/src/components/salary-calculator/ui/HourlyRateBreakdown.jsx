@@ -20,7 +20,7 @@ export const HourlyRateBreakdown = ({
         <div className="bg-blue-50 p-4 rounded-lg">
           <div className="text-sm text-gray-600">Gross Rate</div>
           <div className="text-lg font-bold text-blue-600">
-            {formatCurrency(currentHourlyRateBgn * EUR_TO_BGN_RATE, 'EUR')}/h
+            {formatCurrency(currentHourlyRateBgn, 'EUR')}/h
           </div>
           <div className="text-sm text-gray-500">
             {formatCurrency(currentHourlyRateBgn, 'BGN')}/h
@@ -29,7 +29,7 @@ export const HourlyRateBreakdown = ({
         <div className="bg-green-50 p-4 rounded-lg">
           <div className="text-sm text-gray-600">Net Rate</div>
           <div className="text-lg font-bold text-green-600">
-            {formatCurrency(netHourlyRateBgn * EUR_TO_BGN_RATE, 'EUR')}/h
+            {formatCurrency(netHourlyRateBgn, 'EUR')}/h
           </div>
           <div className="text-sm text-gray-500">
             {formatCurrency(netHourlyRateBgn, 'BGN')}/h
@@ -38,7 +38,7 @@ export const HourlyRateBreakdown = ({
         <div className="bg-red-50 p-4 rounded-lg">
           <div className="text-sm text-gray-600">Cost to Company</div>
           <div className="text-lg font-bold text-red-600">
-            {formatCurrency(costPerHourBgn * EUR_TO_BGN_RATE, 'EUR')}/h
+            {formatCurrency(costPerHourBgn, 'EUR')}/h
           </div>
           <div className="text-sm text-gray-500">
             {formatCurrency(costPerHourBgn, 'BGN')}/h
