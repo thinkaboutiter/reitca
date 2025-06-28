@@ -112,9 +112,6 @@ export const useSalaryCalculation = () => {
     }).format(amount);
   };
 
-  const displayAmount = (amount) => {
-    return currency === 'EUR' ? amount / EUR_TO_BGN_RATE : amount;
-  };
 
   return {
     // State
@@ -138,7 +135,6 @@ export const useSalaryCalculation = () => {
     ...calculations,
 
     // Utilities
-    formatCurrency,
-    displayAmount
+    formatCurrency
   };
 };

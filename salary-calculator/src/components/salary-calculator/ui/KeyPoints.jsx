@@ -7,7 +7,7 @@ export const KeyPoints = ({
   isCeilingApplied,
   socialSecuritySavings,
   formatCurrency,
-  displayAmount
+  currency
 }) => {
   return (
     <div className="mt-6 bg-gray-50 rounded-lg p-4">
@@ -21,7 +21,7 @@ export const KeyPoints = ({
         <li>• Social security contributions are capped at {formatCurrency(SOCIAL_SECURITY_CEILING_BGN, 'BGN')} per month</li>
         {isCeilingApplied && (
           <li className="text-orange-700 font-medium">
-            • Monthly savings from ceiling: {formatCurrency(displayAmount(socialSecuritySavings))} 
+            • Monthly savings from ceiling: {formatCurrency(socialSecuritySavings, currency)} 
             (employee + employer combined)
           </li>
         )}

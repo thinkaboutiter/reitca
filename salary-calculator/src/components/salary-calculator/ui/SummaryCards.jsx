@@ -8,8 +8,7 @@ export const SummaryCards = ({
   netToGrossRatio,
   totalCostRatio,
   currency,
-  formatCurrency,
-  displayAmount
+  formatCurrency
 }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -18,7 +17,7 @@ export const SummaryCards = ({
           <Coins className="w-5 h-5 text-green-600" />
           <span className="font-semibold text-gray-700">Net Salary</span>
         </div>
-        <div className="text-2xl font-bold text-green-600">{formatCurrency(displayAmount(netSalary))}</div>
+        <div className="text-2xl font-bold text-green-600">{formatCurrency(netSalary, currency)}</div>
         {currency === 'EUR' && (
           <div className="text-sm text-gray-500">{formatCurrency(netSalary, 'BGN')}</div>
         )}
@@ -29,7 +28,7 @@ export const SummaryCards = ({
           <TrendingUp className="w-5 h-5 text-orange-600" />
           <span className="font-semibold text-gray-700">Total Taxes</span>
         </div>
-        <div className="text-2xl font-bold text-orange-600">{formatCurrency(displayAmount(totalTaxesPaid))}</div>
+        <div className="text-2xl font-bold text-orange-600">{formatCurrency(totalTaxesPaid, currency)}</div>
         {currency === 'EUR' && (
           <div className="text-sm text-gray-500">{formatCurrency(totalTaxesPaid, 'BGN')}</div>
         )}

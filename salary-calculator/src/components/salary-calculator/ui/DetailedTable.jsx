@@ -12,8 +12,7 @@ export const DetailedTable = ({
   isCeilingApplied,
   SOCIAL_SECURITY_CEILING_BGN,
   currency,
-  formatCurrency,
-  displayAmount
+  formatCurrency
 }) => {
   const headers = [
     { title: 'Description' },
@@ -33,7 +32,7 @@ export const DetailedTable = ({
         <TableRow highlighted>
           <TableCell>Gross Salary</TableCell>
           <TableCell align="right">-</TableCell>
-          <TableCell align="right" className="font-mono">{formatCurrency(displayAmount(currentGrossSalary))}</TableCell>
+          <TableCell align="right" className="font-mono">{formatCurrency(currentGrossSalary, currency)}</TableCell>
           <TableCell align="right">Base</TableCell>
         </TableRow>
         
@@ -43,7 +42,7 @@ export const DetailedTable = ({
             <CeilingIndicator />
           </TableCell>
           <TableCell align="right">9.78%</TableCell>
-          <TableCell align="right" className="font-mono">-{formatCurrency(displayAmount(employeeSocialSecurity.pension))}</TableCell>
+          <TableCell align="right" className="font-mono">-{formatCurrency(employeeSocialSecurity.pension, currency)}</TableCell>
           <TableCell align="right" className="text-red-600">Employee</TableCell>
         </TableRow>
         
@@ -53,7 +52,7 @@ export const DetailedTable = ({
             <CeilingIndicator />
           </TableCell>
           <TableCell align="right">3.20%</TableCell>
-          <TableCell align="right" className="font-mono">-{formatCurrency(displayAmount(employeeSocialSecurity.health))}</TableCell>
+          <TableCell align="right" className="font-mono">-{formatCurrency(employeeSocialSecurity.health, currency)}</TableCell>
           <TableCell align="right" className="text-red-600">Employee</TableCell>
         </TableRow>
         
@@ -63,21 +62,21 @@ export const DetailedTable = ({
             <CeilingIndicator />
           </TableCell>
           <TableCell align="right">0.80%</TableCell>
-          <TableCell align="right" className="font-mono">-{formatCurrency(displayAmount(employeeSocialSecurity.unemployment))}</TableCell>
+          <TableCell align="right" className="font-mono">-{formatCurrency(employeeSocialSecurity.unemployment, currency)}</TableCell>
           <TableCell align="right" className="text-red-600">Employee</TableCell>
         </TableRow>
         
         <TableRow>
           <TableCell>Income Tax</TableCell>
           <TableCell align="right">10.00%</TableCell>
-          <TableCell align="right" className="font-mono">-{formatCurrency(displayAmount(incomeTax))}</TableCell>
+          <TableCell align="right" className="font-mono">-{formatCurrency(incomeTax, currency)}</TableCell>
           <TableCell align="right" className="text-red-600">Employee</TableCell>
         </TableRow>
         
         <TableRow highlighted>
           <TableCell>Net Salary</TableCell>
           <TableCell align="right">-</TableCell>
-          <TableCell align="right" className="font-mono">{formatCurrency(displayAmount(netSalary))}</TableCell>
+          <TableCell align="right" className="font-mono">{formatCurrency(netSalary, currency)}</TableCell>
           <TableCell align="right">Employee Gets</TableCell>
         </TableRow>
         
@@ -87,7 +86,7 @@ export const DetailedTable = ({
             <CeilingIndicator />
           </TableCell>
           <TableCell align="right">12.92%</TableCell>
-          <TableCell align="right" className="font-mono">+{formatCurrency(displayAmount(employerSocialSecurity.pension))}</TableCell>
+          <TableCell align="right" className="font-mono">+{formatCurrency(employerSocialSecurity.pension, currency)}</TableCell>
           <TableCell align="right" className="text-blue-600">Company</TableCell>
         </TableRow>
         
@@ -97,7 +96,7 @@ export const DetailedTable = ({
             <CeilingIndicator />
           </TableCell>
           <TableCell align="right">4.80%</TableCell>
-          <TableCell align="right" className="font-mono">+{formatCurrency(displayAmount(employerSocialSecurity.health))}</TableCell>
+          <TableCell align="right" className="font-mono">+{formatCurrency(employerSocialSecurity.health, currency)}</TableCell>
           <TableCell align="right" className="text-blue-600">Company</TableCell>
         </TableRow>
         
@@ -107,21 +106,21 @@ export const DetailedTable = ({
             <CeilingIndicator />
           </TableCell>
           <TableCell align="right">1.00%</TableCell>
-          <TableCell align="right" className="font-mono">+{formatCurrency(displayAmount(employerSocialSecurity.unemployment))}</TableCell>
+          <TableCell align="right" className="font-mono">+{formatCurrency(employerSocialSecurity.unemployment, currency)}</TableCell>
           <TableCell align="right" className="text-blue-600">Company</TableCell>
         </TableRow>
         
         <TableRow>
           <TableCell>Work Accidents Insurance</TableCell>
           <TableCell align="right">0.20%</TableCell>
-          <TableCell align="right" className="font-mono">+{formatCurrency(displayAmount(employerSocialSecurity.workAccidents))}</TableCell>
+          <TableCell align="right" className="font-mono">+{formatCurrency(employerSocialSecurity.workAccidents, currency)}</TableCell>
           <TableCell align="right" className="text-blue-600">Company</TableCell>
         </TableRow>
         
         <TableRow highlighted>
           <TableCell>Total Cost to Company</TableCell>
           <TableCell align="right">-</TableCell>
-          <TableCell align="right" className="font-mono">{formatCurrency(displayAmount(totalCostToCompany))}</TableCell>
+          <TableCell align="right" className="font-mono">{formatCurrency(totalCostToCompany, currency)}</TableCell>
           <TableCell align="right">Company Pays</TableCell>
         </TableRow>
       </Table>

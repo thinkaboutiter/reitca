@@ -47,8 +47,7 @@ const SalaryCalculator = () => {
     costPerHourBgn,
 
     // Utilities
-    formatCurrency,
-    displayAmount
+    formatCurrency
   } = useSalaryCalculation();
 
   return (
@@ -95,7 +94,7 @@ const SalaryCalculator = () => {
         totalEmployeeDeductions={totalEmployeeDeductions}
         totalCostToCompany={totalCostToCompany}
         formatCurrency={formatCurrency}
-        displayAmount={displayAmount}
+        currency={currency}
       />
 
       <SummaryCards
@@ -105,7 +104,6 @@ const SalaryCalculator = () => {
         totalCostRatio={totalCostRatio}
         currency={currency}
         formatCurrency={formatCurrency}
-        displayAmount={displayAmount}
       />
 
       <DetailedTable
@@ -119,7 +117,6 @@ const SalaryCalculator = () => {
         SOCIAL_SECURITY_CEILING_BGN={SOCIAL_SECURITY_CEILING_BGN}
         currency={currency}
         formatCurrency={formatCurrency}
-        displayAmount={displayAmount}
       />
 
       <KeyPoints
@@ -129,7 +126,7 @@ const SalaryCalculator = () => {
         isCeilingApplied={isCeilingApplied}
         socialSecuritySavings={socialSecuritySavings}
         formatCurrency={formatCurrency}
-        displayAmount={displayAmount}
+        currency={currency}
       />
     </div>
   );
