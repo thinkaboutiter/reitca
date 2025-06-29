@@ -36,6 +36,10 @@ jobs:
       run: npm ci
       working-directory: ./salary-calculator
       
+    - name: Run tests
+      run: npm test -- --coverage --ci --passWithNoTests
+      working-directory: ./salary-calculator
+      
     - name: Increment build number
       id: version
       run: |
@@ -48,18 +52,52 @@ jobs:
         echo "build_number=$NEW_BUILD" >> $GITHUB_OUTPUT
         echo "tag=v${VERSION}-build.${NEW_BUILD}" >> $GITHUB_OUTPUT
         
-    - name: Commit updated build number
+    - name: Configure git
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
-        git add salary-calculator/build-number.json
-        git commit -m "Increment build number to ${{ steps.version.outputs.build_number }}"
-        git push
       
     - name: Build with version info
       run: npm run build:ci
       working-directory: ./salary-calculator
       
+    - name: Update README
+      run: |
+        cat > README.md << 'EOF'
+        # Reitca Projects
+
+        This repository contains multiple projects and applications.
+
+        ## Projects
+
+        ### 🧮 Salary Calculator
+        **Version:** ${{ steps.version.outputs.version }}  
+        **Build:** ${{ steps.version.outputs.build_number }}  
+        **Status:** ✅ Deployed  
+        **Tests:** ✅ Passing  
+        **URL:** https://thinkaboutiter.github.io/reitca/
+
+        A comprehensive multi-country salary calculator with detailed tax breakdown and currency conversion. Currently supports Bulgaria with EUR/BGN conversion.
+
+        **Features:**
+        - Multi-country salary calculations
+        - Real-time currency conversion (EUR ↔ BGN)
+        - Detailed tax and social security breakdown
+        - Working hours flexibility
+        - Responsive design
+
+        ---
+
+        *This README is automatically updated on each deployment.*  
+        *Last updated: $(date +%Y-%m-%d)*
+        EOF
+        
+    - name: Commit README and build number
+      run: |
+        git add README.md salary-calculator/build-number.json
+        git commit -m "Update README and build number to ${{ steps.version.outputs.build_number }}"
+        git push
+        
     - name: Create git tag
       run: |
         git tag ${{ steps.version.outputs.tag }}
