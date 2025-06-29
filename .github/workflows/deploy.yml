@@ -3,8 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -16,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     
     steps:
@@ -34,34 +33,48 @@ jobs:
       run: npm ci
       working-directory: ./salary-calculator
       
-    - name: Build with version info
+    - name: Increment build number
+      id: version
       run: |
-        export REACT_APP_VERSION=$(node -p "require('./package.json').version")
-        export REACT_APP_BUILD_NUMBER=${{ github.run_number }}
-        npm run build
+        cd salary-calculator
+        CURRENT_BUILD=$(node -p "require('./build-number.json').buildNumber")
+        NEW_BUILD=$((CURRENT_BUILD + 1))
+        echo "{\"buildNumber\": $NEW_BUILD}" > build-number.json
+        VERSION=$(node -p "require('./package.json').version")
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "build_number=$NEW_BUILD" >> $GITHUB_OUTPUT
+        echo "tag=v${VERSION}-build.${NEW_BUILD}" >> $GITHUB_OUTPUT
+        
+    - name: Commit updated build number
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add salary-calculator/build-number.json
+        git commit -m "Increment build number to ${{ steps.version.outputs.build_number }}"
+        git push
+      
+    - name: Build with version info
+      run: npm run build:ci
       working-directory: ./salary-calculator
       
     - name: Create git tag
-      if: github.ref == 'refs/heads/main'
       run: |
-        VERSION=$(node -p "require('./salary-calculator/package.json').version")
-        TAG="v${VERSION}-build.${{ github.run_number }}"
-        git config user.name github-actions
-        git config user.email github-actions@github.com
-        git tag $TAG
-        git push origin $TAG
+        git tag ${{ steps.version.outputs.tag }}
+        git push origin ${{ steps.version.outputs.tag }}
       
+    - name: Prepare deployment folder
+      run: |
+        mkdir -p docs
+        cp -r salary-calculator/build/* docs/
+        
     - name: Setup Pages
-      if: github.ref == 'refs/heads/main'
       uses: actions/configure-pages@v4
       
     - name: Upload artifact
-      if: github.ref == 'refs/heads/main'
       uses: actions/upload-pages-artifact@v3
       with:
-        path: './salary-calculator/build'
+        path: './docs'
 
     - name: Deploy to GitHub Pages
-      if: github.ref == 'refs/heads/main'
       id: deployment
       uses: actions/deploy-pages@v4

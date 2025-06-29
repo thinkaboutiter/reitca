@@ -15,7 +15,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "node scripts/increment-build.js && cross-env REACT_APP_VERSION=$npm_package_version REACT_APP_BUILD_NUMBER=$(node -p \"require('./build-number.json').buildNumber\") react-scripts build",
+    "build:ci": "cross-env REACT_APP_VERSION=$npm_package_version REACT_APP_BUILD_NUMBER=$(node -p \"require('./build-number.json').buildNumber\") react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "build:version": "cross-env REACT_APP_VERSION=$npm_package_version REACT_APP_BUILD_NUMBER=${BUILD_NUMBER:-0} npm run build"
