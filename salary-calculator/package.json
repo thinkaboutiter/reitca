@@ -2,6 +2,7 @@
   "name": "bulgaria-salary-calculator",
   "version": "1.0.0",
   "description": "A comprehensive salary calculator for Bulgaria with EUR/BGN conversion and tax breakdown",
+  "homepage": "https://thinkaboutiter.github.io/reitca/",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.4",
