@@ -70,14 +70,8 @@ jobs:
         mkdir -p docs
         cp -r salary-calculator/build/* docs/
         
-    - name: Setup Pages
-      uses: actions/configure-pages@v4
-      
-    - name: Upload artifact
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: './docs'
-
-    - name: Deploy to GitHub Pages
-      id: deployment
-      uses: actions/deploy-pages@v4
+    - name: Commit and push docs folder
+      run: |
+        git add docs/
+        git commit -m "Deploy build ${{ steps.version.outputs.build_number }}"
+        git push
