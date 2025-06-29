@@ -19,9 +19,9 @@ describe('Salary Calculator Integration Tests', () => {
       // Check that calculations are displayed
       await waitFor(() => {
         expect(screen.getByText('Hourly Rate Breakdown')).toBeInTheDocument();
-        expect(screen.getByText('Employee Pays')).toBeInTheDocument();
-        expect(screen.getByText('Company Pays')).toBeInTheDocument();
-        expect(screen.getByText('Net Salary')).toBeInTheDocument();
+        expect(screen.getAllByText('Employee Pays').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Company Pays').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Net Salary').length).toBeGreaterThan(0);
       });
     });
 
@@ -78,7 +78,7 @@ describe('Salary Calculator Integration Tests', () => {
       render(<SalaryCalculator />);
 
       // Get initial net salary text
-      const initialContent = screen.getByText('Net Salary').parentElement.textContent;
+      const initialContent = screen.getAllByText('Net Salary')[0].parentElement.textContent;
 
       // Change gross salary
       const salaryInput = screen.getByDisplayValue('2000');
@@ -86,7 +86,7 @@ describe('Salary Calculator Integration Tests', () => {
 
       // Wait for calculations to update
       await waitFor(() => {
-        const updatedContent = screen.getByText('Net Salary').parentElement.textContent;
+        const updatedContent = screen.getAllByText('Net Salary')[0].parentElement.textContent;
         expect(updatedContent).not.toBe(initialContent);
       });
     });
@@ -169,7 +169,7 @@ describe('Salary Calculator Integration Tests', () => {
 
       // Verify EUR amounts are displayed in summary cards
       await waitFor(() => {
-        const netSalaryCard = screen.getByText('Net Salary').parentElement;
+        const netSalaryCard = screen.getAllByText('Net Salary')[0].parentElement;
         expect(netSalaryCard.textContent).toMatch(/€/);
       });
     });
@@ -182,7 +182,7 @@ describe('Salary Calculator Integration Tests', () => {
 
       // Wait for both EUR and BGN amounts to be displayed
       await waitFor(() => {
-        const netSalaryCard = screen.getByText('Net Salary').parentElement;
+        const netSalaryCard = screen.getAllByText('Net Salary')[0].parentElement;
         expect(netSalaryCard.textContent).toMatch(/€/);
         expect(netSalaryCard.textContent).toMatch(/лв/);
       });
@@ -201,11 +201,11 @@ describe('Salary Calculator Integration Tests', () => {
         // Verify main sections are rendered
         expect(screen.getByText('Hourly Rate Breakdown')).toBeInTheDocument();
         expect(screen.getByText('Employee Pays')).toBeInTheDocument();
-        expect(screen.getByText('Company Pays')).toBeInTheDocument();
+        expect(screen.getAllByText('Company Pays').length).toBeGreaterThan(0);
         expect(screen.getByText('Complete Breakdown')).toBeInTheDocument();
 
         // Verify key calculations exist
-        expect(screen.getByText('Net Salary')).toBeInTheDocument();
+        expect(screen.getAllByText('Net Salary').length).toBeGreaterThan(0);
         expect(screen.getByText('Total Taxes')).toBeInTheDocument();
         expect(screen.getByText('Net/Gross Ratio')).toBeInTheDocument();
         expect(screen.getByText('Cost/Net Ratio')).toBeInTheDocument();
@@ -237,7 +237,7 @@ describe('Salary Calculator Integration Tests', () => {
 
       // Should not crash and should display zero values
       await waitFor(() => {
-        expect(screen.getByText('Net Salary')).toBeInTheDocument();
+        expect(screen.getAllByText('Net Salary').length).toBeGreaterThan(0);
       });
     });
 
@@ -250,8 +250,8 @@ describe('Salary Calculator Integration Tests', () => {
 
       // Should handle large values and show ceiling indicator
       await waitFor(() => {
-        expect(screen.getByText(/Ceiling Applied/)).toBeInTheDocument();
-        expect(screen.getByText('Net Salary')).toBeInTheDocument();
+        expect(screen.getAllByText(/Ceiling Applied/).length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Net Salary').length).toBeGreaterThan(0);
       });
     });
 

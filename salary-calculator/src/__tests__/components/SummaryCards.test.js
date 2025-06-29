@@ -165,7 +165,7 @@ describe('SummaryCards Component', () => {
       render(<SummaryCards {...zeroProps} />);
 
       expect(defaultProps.formatCurrency).toHaveBeenCalledWith(0, 'BGN');
-      expect(screen.getByText('0.0%')).toBeInTheDocument();
+      expect(screen.getAllByText('0.0%')).toHaveLength(2); // Both ratio cards show 0.0%
     });
 
     test('should handle large values', () => {
